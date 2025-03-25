@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Binh/Tốt (兵/卒) trong cờ Tướng (Xiangqi).

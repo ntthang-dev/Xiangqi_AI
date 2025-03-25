@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Ju (Xe) trong cờ Tướng (Xiangqi).

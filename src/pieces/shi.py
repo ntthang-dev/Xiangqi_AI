@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Sĩ (Shi) trong cờ Tướng (Xiangqi).

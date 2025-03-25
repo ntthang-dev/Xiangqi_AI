@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Mã (Ngựa) trong cờ Tướng (Xiangqi).

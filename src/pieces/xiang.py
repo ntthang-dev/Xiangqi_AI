@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Tượng (象) trong cờ Tướng (Xiangqi).

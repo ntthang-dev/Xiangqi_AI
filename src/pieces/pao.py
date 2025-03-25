@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Pao (Pháo) trong cờ Tướng (Xiangqi).

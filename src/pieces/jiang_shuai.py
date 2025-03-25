@@ -1,0 +1,1 @@
+# Tệp này định nghĩa quân Jiang/Shuai (Tướng) trong cờ Tướng (Xiangqi).
