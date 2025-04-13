@@ -1,16 +1,17 @@
 # board.py: quản lý bàn cờ
 import os
+import sys
 import pygame
 from src.pieces.piece import Piece
 
 class Board:
     # Game board constants
-    WIDTH = 521
-    HEIGHT = 577
-    GRID_SIZE = 57
-    PIECE_SIZE = 57
-    MARGIN_LEFT = 9
-    MARGIN_TOP = 51
+    WIDTH = 522
+    HEIGHT = 630
+    GRID_SIZE = 60
+    PIECE_SIZE = 60
+    MARGIN_LEFT = 35
+    MARGIN_TOP = 100
 
     def __init__(self):
         # Initialize empty 10x9 board (rowx x cols)
@@ -31,29 +32,64 @@ class Board:
         self.images = {}
         
         # Board background
-        self.images['board'] = pygame.image.load(os.path.join('src', 'res', 'bg.bmp'))
+        padding_top = 50
+        self.images['board'] = pygame.image.load(os.path.join('src', 'res', 'bg.png')).convert()
+        inner_padding = 20
+        grid_image = pygame.image.load(os.path.join('src', 'res', 'grid.png')).convert_alpha()
+        grid_width = self.WIDTH - 2*inner_padding
+        grid_height = self.HEIGHT - 2*inner_padding - padding_top
+        grid_image = pygame.transform.smoothscale(grid_image, (grid_width, grid_height))
+        self.images['grid'] = grid_image
         
-        # Piece icon
+
         piece_types = {
-            'jiang_shuai': {'red': 'R_K', 'black': 'B_K'},  # Kings/Generals
-            'shi': {'red': 'R_A', 'black': 'B_A'},          # Abvisors
-            'xiang': {'red': 'R_E', 'black': 'B_E'},        # Elephant
-            'ma': {'red': 'R_H', 'black': 'B_H'},           # Horse
-            'ju': {'red': 'R_R', 'black': 'B_R'},           # Chariots/Rooks
-            'pao': {'red': 'R_C', 'black': 'B_C'},          # Cannons
-            'bing_zu': {'red': 'R_S', 'black': 'B_S'},          # Pawns/Soldier
+            'jiangshuai': {'red': 'red', 'black': 'black', 'type': 'jiang'},
+            'shi': {'red': 'red', 'black': 'black', 'type': 'shi'},
+            'xiang': {'red': 'red', 'black': 'black', 'type': 'xiang'},
+            'ma': {'red': 'red', 'black': 'black', 'type': 'ma'},
+            'ju': {'red': 'red', 'black': 'black', 'type': 'ju'},
+            'pao': {'red': 'red', 'black': 'black', 'type': 'pao'},
+            'bingzu': {'red': 'red', 'black': 'black', 'type': 'bingzu'},
         }
-        
-        # Load each piece image
+
+        # Piece icon
+        # Tỉ lệ scale (để padding cho hình tròn không bị vỡ)
+        scale_factor = 0.85
+        scaled_size = self.PIECE_SIZE * scale_factor
+
         for piece_type, colors in piece_types.items():
-            for color, file_prefix in colors.items():
-                file_path = os.path.join('src', 'res', f"{file_prefix}.ico")
-                self.images[f"{color}_{piece_type}"] = pygame.image.load(file_path)
+            for color in ['red', 'black']:
+                bg_name = colors[color]        # 'red' hoặc 'black'
+                fg_name = colors['type']       # ví dụ: 'jiang'
+
+                # Load background (vòng tròn nền màu)
+                bg_path = os.path.join('src', 'res', f"{bg_name}icon.png")
+                bg_image = pygame.image.load(bg_path).convert_alpha()
+                bg_image = pygame.transform.smoothscale(bg_image, (scaled_size + 1, scaled_size + 1))
+
+                # Load foreground (ký hiệu quân cờ)
+                fg_path = os.path.join('src', 'res', f"{bg_name}{fg_name}.png")
+                fg_image = pygame.image.load(fg_path).convert_alpha()
+                fg_image = pygame.transform.smoothscale(fg_image, (self.PIECE_SIZE//2, self.PIECE_SIZE//2))
+
+                # Tạo surface với kích thước chuẩn (có padding)
+                piece_surface = pygame.Surface((self.PIECE_SIZE, self.PIECE_SIZE), pygame.SRCALPHA)
+                offset = (self.PIECE_SIZE - scaled_size) // 2
+
+                # Blit nền vào giữa
+                piece_surface.blit(bg_image, (offset, offset))
+                piece_surface.blit(fg_image, (self.PIECE_SIZE // 4, self.PIECE_SIZE // 4))
+
+                # Lưu ảnh cuối cùng
+                self.images[f"{color}_{piece_type}"] = piece_surface
+
 
         # UI elements
-        self.images['select'] = pygame.image.load(os.path.join('src', 'res', 'select.ico'))
-        self.images['valid'] = pygame.image.load(os.path.join('src', 'res', 'valid.ico'))
-        self.images['attack'] = pygame.image.load(os.path.join('src', 'res', 'attack.ico'))
+        self.images['select'] = pygame.image.load(os.path.join('src', 'res', 'select.png')).convert_alpha()
+        self.images['select'] = pygame.transform.smoothscale(self.images['select'], (self.PIECE_SIZE, self.PIECE_SIZE))
+        self.images['valid'] = pygame.image.load(os.path.join('src', 'res', 'valid.png')).convert_alpha()
+        self.images['attack'] = pygame.image.load(os.path.join('src', 'res', 'attack.ico')).convert_alpha()
+        self.images['attack'] = pygame.transform.smoothscale(self.images['attack'], (self.PIECE_SIZE, self.PIECE_SIZE))
 
     def setup_pieces(self):
         """Set up the initial board position with all pieces"""
@@ -66,43 +102,43 @@ class Board:
         from src.pieces.bing_zu import BingZu
         
         # Place generals/kings
-        self.place_piece(JiangShuai('red', (0, 4)))
-        self.place_piece(JiangShuai('black', (9, 4)))
+        self.place_piece(JiangShuai('black', (0, 4)))
+        self.place_piece(JiangShuai('red', (9, 4)))
         
         # Place advisor/guards
-        self.place_piece(Shi('red', (0, 3)))
-        self.place_piece(Shi('red', (0, 5)))
-        self.place_piece(Shi('black', (9, 3)))
-        self.place_piece(Shi('black', (9, 5)))
+        self.place_piece(Shi('black', (0, 3)))
+        self.place_piece(Shi('black', (0, 5)))
+        self.place_piece(Shi('red', (9, 3)))
+        self.place_piece(Shi('red', (9, 5)))
         
         # Place elephant/bishops
-        self.place_piece(Xiang('red', (0, 2)))
-        self.place_piece(Xiang('red', (0, 6)))
-        self.place_piece(Xiang('black', (9, 2)))
-        self.place_piece(Xiang('black', (9, 6)))
+        self.place_piece(Xiang('black', (0, 2)))
+        self.place_piece(Xiang('black', (0, 6)))
+        self.place_piece(Xiang('red', (9, 2)))
+        self.place_piece(Xiang('red', (9, 6)))
         
-        # Place horse/knights
-        self.place_piece(Ma('red', (0, 1)))
-        self.place_piece(Ma('red', (0, 7)))
-        self.place_piece(Ma('black', (9, 1)))
-        self.place_piece(Ma('black', (9, 7)))
+        # Place horse/knights 
+        self.place_piece(Ma('black', (0, 1)))
+        self.place_piece(Ma('black', (0, 7)))
+        self.place_piece(Ma('red', (9, 1)))
+        self.place_piece(Ma('red', (9, 7)))
         
         # Place chariots/rooks
-        self.place_piece(Ju('red', (0, 0)))
-        self.place_piece(Ju('red', (0, 8)))
-        self.place_piece(Ju('black', (9, 0)))
-        self.place_piece(Ju('black', (9, 8)))
+        self.place_piece(Ju('black', (0, 0)))
+        self.place_piece(Ju('black', (0, 8)))
+        self.place_piece(Ju('red', (9, 0)))
+        self.place_piece(Ju('red', (9, 8)))
         
         # Place cannons
-        self.place_piece(Pao('red', (2, 1)))
-        self.place_piece(Pao('red', (2, 7)))
-        self.place_piece(Pao('black', (7, 1)))
-        self.place_piece(Pao('black', (7, 7)))
+        self.place_piece(Pao('black', (2, 1)))
+        self.place_piece(Pao('black', (2, 7)))
+        self.place_piece(Pao('red', (7, 1)))
+        self.place_piece(Pao('red', (7, 7)))
         
         # Place pawns/soldiers
         for i in range(0, 9, 2):
-            self.place_piece(BingZu('red', (3, i))) # 1 3 5 7 9
-            self.place_piece(BingZu('black', (6, i)))
+            self.place_piece(BingZu('black', (3, i)))
+            self.place_piece(BingZu('red', (6, i)))
 
     def place_piece(self, piece):
         """Place a piece at its position on the board"""
@@ -142,9 +178,12 @@ class Board:
     def is_in_check(self, color):
         """Check if the player of given color is in check (bị chiếu tướng)"""
         # pind the generals/king
-        king_pos  = next(((row, col) for row in range(10) for col in range(9) if (piece := self.board[row][col] and self.board[row][col].color == color and self.board[row][col].__class__.__name__ == 'JiangShuai')), None)
+        king_pos  = next(((row, col) for row in range(10) for col in range(9) 
+                            if (self.board[row][col]
+                            and self.board[row][col].color == color 
+                            and self.board[row][col].__class__.__name__ == 'JiangShuai')), None)
         
-        if not king_pos: return False
+        if king_pos is None: return False
         
         # Check if any opponent piece can capture the king
         opposite_color = 'black' if color == 'red' else 'red'
@@ -154,7 +193,6 @@ class Board:
                 if piece and piece.color == opposite_color:
                     if king_pos in piece.get_valid_moves(self):
                         return True
-
         return False
 
     def is_checkmate(self, color):
@@ -183,7 +221,7 @@ class Board:
                         self.board[original_pos[0]][original_pos[1]] = piece
                         piece.position = original_pos
                         self.board[move[0]][move[1]] = captured
-                        
+
                         if not still_in_check:
                             return False
         return True
@@ -301,6 +339,7 @@ class Board:
         """Draw the board and pieces on the screen"""
         # Draw the board background
         screen.blit(self.images['board'], (0, 0))
+        screen.blit(self.images['grid'], (self.MARGIN_LEFT, self.MARGIN_TOP))
 
         # Draw highlights for selected piece and valid moves
         if self.selected_piece:
@@ -315,8 +354,8 @@ class Board:
                 if self.get_piece(move) and self.get_piece(move).color != self.current_player:
                     screen.blit(self.images['attack'], (pos[0] - self.PIECE_SIZE // 2, pos[1] - self.PIECE_SIZE // 2))
                 else:
-                    screen.blit(self.images['valid'], (pos[0] - self.PIECE_SIZE // 2, pos[1] - self.PIECE_SIZE // 2))
-                    
+                    screen.blit(self.images['valid'], (pos[0] - 12, pos[1] - 12))
+
         for row in range(10):
             for col in range(9):
                 piece = self.board[row][col]
