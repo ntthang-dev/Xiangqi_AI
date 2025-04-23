@@ -3,7 +3,7 @@ import os
 import sys
 import pygame
 from pieces.piece import Piece
-
+import copy
 class Board:
     # Game board constants
     WIDTH = 522
@@ -172,7 +172,6 @@ class Board:
         # Clear selection and valid moves
         self.selected_piece = None
         self.valid_moves = []
-        
         return True
     
     def is_in_check(self, color):
@@ -334,7 +333,14 @@ class Board:
         else:
             # Try to select a piece
             return self.select_piece(board_pos)
-    
+    def handle_AI_move(self, from_pos, to_pos):
+        self.select_piece(from_pos)
+        if to_pos in self.valid_moves:
+            return self.move_piece(from_pos, to_pos)
+        self.selected_piece = None
+        self.valid_moves = []
+        return False
+
     def draw(self, screen):
         """Draw the board and pieces on the screen"""
         # Draw the board background
@@ -366,3 +372,23 @@ class Board:
                     if image_key in self.images:
                         pos = self.board_to_screen((row, col))
                         screen.blit(self.images[image_key], (pos[0] - self.PIECE_SIZE // 2, pos[1] - self.PIECE_SIZE // 2))
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if is_surface(v):
+                setattr(result, k, v)  # dùng lại reference
+            else:
+                setattr(result, k, copy.deepcopy(v, memo))
+        return result
+    def copy(self):
+        return copy.deepcopy(self)
+def is_surface(obj):
+    if isinstance(obj, pygame.Surface):
+        return True
+    if isinstance(obj, (list, tuple, set)):
+        return any(is_surface(item) for item in obj)
+    if isinstance(obj, dict):
+        return any(is_surface(k) or is_surface(v) for k, v in obj.items())
+    return False

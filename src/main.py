@@ -2,7 +2,7 @@ import pygame
 import sys
 import os
 from board.board import Board
-
+import engine
 # Initialize pygame
 pygame.init()
 
@@ -201,7 +201,7 @@ class Game:
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[1].is_clicked(pos, click): # Play with AI
-                self.player_color = 'red'
+                self.player_color = 'black'
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[2].is_clicked(pos, click): # Quit
@@ -212,6 +212,7 @@ class Game:
             for i, button in enumerate(self.difficulty_buttons):
                 if button.is_clicked(pos, click):
                     self.ai_difficulty = i + 1
+                    print("AI Difficulty set to:", self.ai_difficulty)
                     # TODO self.engine = Engine()
                 
     def handle_game_input(self, pos, click):
@@ -255,12 +256,18 @@ class Game:
         if self.board and self.board.is_game_over():
             if self.board.is_checkmate('red'):
                 self.winner = 'Black'
-                self.state = STATE_GAME_OVER
+                self.state = STATE_GAME_OVER 
             elif self.board.is_checkmate('black'):
                 self.winner = 'Red'
                 self.state = STATE_GAME_OVER
-        
-        # TODO: Update AI thinking state
+        if self.player_color:
+            # This is in AI Mode
+            # AI's turn to think
+            if self.board.current_player != self.player_color:
+                print("AI is thinking...")
+
+                engine.engine(self.board, self.board.current_player, type='minimax', difficulty=self.ai_difficulty)
+                
     
     def run(self):
         """Main game loop"""

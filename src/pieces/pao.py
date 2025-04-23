@@ -2,6 +2,9 @@
 from pieces.piece import Piece
 
 class Pao(Piece):
+    def __init__(self, color, position):
+        super().__init__(color, position)
+        self.symbol = 'P' if color == 'red' else 'p'
     def get_valid_moves(self, board):
         moves = []
         row, col = self.position
