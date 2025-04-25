@@ -6,11 +6,13 @@ def engine(board: Board,Ai_color:str,type = 'minimax', difficulty = 2):
     The default setiing is Alpha-beta.
     The default difficulty is 2. (1-3)
         Otherwise, difficulty also set the depth of the search tree."""
-    """    if type == 'alpha_beta':
+    if type == 'alpha_beta':
         # Alpha-beta pruning algorithm
         alpha_beta = alphabeta.AlphaBeta()
-        best_move = alpha_beta.search(board, depth=difficulty)"""
-    if type == 'minimax':
+        best_move = alpha_beta.search(board, depth=difficulty,maximizing_player=(board.current_player == Ai_color), alpha=float('-inf'), beta=float('inf'))
+        print(f"Number of pruned branches: {alpha_beta.pruned_branches}")
+        print(f"Time taken for search: {alpha_beta.time_taken:.4f} seconds")
+    elif type == 'minimax':
         # Minimax algorithm without pruning
         m = minimax.Minimax()
         maximizing = (board.current_player == Ai_color)

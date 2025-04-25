@@ -201,7 +201,7 @@ class Game:
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[1].is_clicked(pos, click): # Play with AI
-                self.player_color = 'black'
+                self.player_color = 'ed'
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[2].is_clicked(pos, click): # Quit
@@ -266,7 +266,7 @@ class Game:
             if self.board.current_player != self.player_color:
                 print("AI is thinking...")
 
-                engine.engine(self.board, self.board.current_player, type='minimax', difficulty=self.ai_difficulty)
+                engine.engine(self.board, self.board.current_player, type='alpha_beta', difficulty=self.ai_difficulty)
                 
     
     def run(self):

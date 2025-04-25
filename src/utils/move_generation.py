@@ -64,6 +64,7 @@ def evaluate_generation(board: Board, valid_move:list)->list:
             
             # Append the result for this piece and move
             temp.append((move, total_value))
+         #Sort the moves by value for faster Pruning in Apha-Beta.
         result.append((piece,temp))
     return result
 def checkShizhi (board:Board)->int:
@@ -83,6 +84,13 @@ def checkShizhi (board:Board)->int:
                 value_AI += piece_value.get_value(j)
             else:
                 value_Player += piece_value.get_value(j)
+    if board.is_checkmate(board.current_player):
+
+            value_Player -= 10000
+            value_AI += 10000
+    if board.is_in_check(board.current_player):
+            value_Player += 10000
+            value_AI -= 10000
     value = value_AI - value_Player
     return value
 def checkShizhan (board:Board)->int:
