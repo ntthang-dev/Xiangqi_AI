@@ -9,7 +9,7 @@ def engine(board: Board,Ai_color:str,type = 'minimax', difficulty = 2):
     if type == 'alpha_beta':
         # Alpha-beta pruning algorithm
         alpha_beta = alphabeta.AlphaBeta()
-        best_move = alpha_beta.search(board, depth=difficulty,maximizing_player=(board.current_player == Ai_color), alpha=float('-inf'), beta=float('inf'))
+        best_move = alpha_beta.search(board, depth=difficulty,is_maximizing=(board.current_player == Ai_color), alpha=float('-inf'), beta=float('inf'))
         print(f"Number of pruned branches: {alpha_beta.pruned_branches}")
         print(f"Time taken for search: {alpha_beta.time_taken:.4f} seconds")
     elif type == 'minimax':

@@ -261,6 +261,7 @@ class Game:
                 self.winner = 'Red'
                 self.state = STATE_GAME_OVER
         if self.player_color:
+             # Delay to show the move
             # This is in AI Mode
             # AI's turn to think
             if self.board.current_player != self.player_color:

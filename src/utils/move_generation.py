@@ -142,3 +142,33 @@ def CheckDeadLock(board:Board)->int:
                 if len(j.get_valid_moves(board)) == 0:
                     number_DL += 1
     return number_DL
+def list1_2list(valid_move:list)->list:
+
+    """
+    This func convert the list from (piece,[(move1,value),(move2,value),...]) to [(piece,move1,value1),(piece,move2,value2),...]
+    """
+    result = []
+    for piece, moves in valid_move:
+        for move, value in moves:
+            result.append((piece, move, value))
+    return result
+
+def evaluation_board(board:Board)->int:
+    """
+    This func evaluate the board and return the value of the board.
+    The value is the sum of the value of all pieces on the board.
+    """
+    player_color = 'red' if board.current_player == 'black' else 'black'
+    if board.is_checkmate(board.current_player):
+        return float('inf')
+    if board.is_checkmate(player_color):
+        return float('-inf')
+    shizhi_value = checkShizhi(board)
+    shizhan_value = checkShizhan(board)
+    kongjian_value = checkKongjian(board)
+            
+            # Combine the values to get a final score for the move
+    total_value = shizhi_value + shizhan_value + kongjian_value
+
+
+    return total_value

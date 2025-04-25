@@ -7,78 +7,50 @@ class AlphaBeta:
         self.pruned_branches = 0  # Biến để đếm số nhánh bị tỉa
         self.time_taken = 0  # Biến để lưu thời gian chạy
 
-    def search(self, board: Board, depth: int, maximizing_player: bool, alpha: float, beta: float):
-        # Bắt đầu đo thời gian
+
+    def search(self, board: Board, depth: int, is_maximizing: bool, alpha: float, beta: float):
         start_time = time.time()
 
-        # Lấy các nước đi hợp lệ cho người chơi hiện tại
-        valid_move = move_generation.get_valid_moves(board, board.current_player)
-        valid_move_with_point = move_generation.evaluate_generation(board, valid_move)
+        if depth == 0 or board.is_game_over():
+            score = move_generation.evaluation_board(board)
+            return None, None, score
 
-        # Nếu đạt độ sâu tối đa hoặc không còn nước đi hợp lệ
-        if depth == 0 or not valid_move:
-            valid_move_with_point = self.sort_valid_moves(valid_move_with_point, not maximizing_player)  # Sắp xếp các nước đi hợp lệ
-            # Tính điểm đánh giá cho các nước đi hợp lệ
-            best_move = None
-            best_score = float('-inf') if maximizing_player else float('inf')
-            best_piece_position = None  # Lưu vị trí quân cờ tốt nhất
 
-            # Duyệt qua các quân cờ và các nước đi hợp lệ để chọn nước đi tốt nhất
-            for piece_name, moves in valid_move_with_point:
-                for move, score in moves:
-                    if maximizing_player:
-                        if score > best_score:
-                            best_score = score
-                            best_move = move
-                            best_piece_position = piece_name.position
-                    else:
-                        if score < best_score:
-                            best_score = score
-                            best_move = move
-                            best_piece_position = piece_name.position
-            # Kết thúc đo thời gian và tính thời gian chạy
-            end_time = time.time()
-            self.time_taken = end_time - start_time  # Lưu thời gian chạy
-            return best_piece_position, best_move, best_score
-
+        best_score = float('-inf') if is_maximizing else float('inf')
         best_move = None
-        best_score = float('-inf') if maximizing_player else float('inf')
-        best_piece_position = None  # Lưu vị trí quân cờ tốt nhất
+        best_piece = None
 
-        # Duyệt qua các quân cờ và các nước đi hợp lệ
-        for piece_name, moves in valid_move_with_point:
-            for move, score in moves:
-                board_copy = board.copy()  # Tạo bản sao của bàn cờ
-                board_copy.move_piece(piece_name.position, move)  # Di chuyển quân cờ
-                board_copy.current_player = 'black' if board.current_player == 'red' else 'red'  # Chuyển lượt chơi
+        valid_moves = move_generation.get_valid_moves(board, board.current_player)
+        valid_moves_with_scores = move_generation.evaluate_generation(board, valid_moves)
+        sorted_moves = self.sort_valid_moves(valid_moves_with_scores, is_maximizing)
+        flat_moves = move_generation.list1_2list(sorted_moves)
 
-                # Đệ quy gọi hàm search để tiếp tục tìm kiếm, đồng thời truyền alpha và beta
-                _, _, score = self.search(board_copy, depth - 1, not maximizing_player, alpha, beta)
+        for piece, move, _ in flat_moves:
+            board_copy = board.copy()
+            board_copy.move_piece(piece.position, move)
+            board_copy.current_player = 'black' if board.current_player == 'red' else 'red'
 
-                # Cập nhật giá trị tốt nhất và thực hiện Alpha-Beta pruning
-                if maximizing_player:
-                    if score > best_score:
-                        best_score = score
-                        best_move = move
-                        best_piece_position = piece_name.position
-                    alpha = max(alpha, best_score)  # Cập nhật alpha
-                else:
-                    if score < best_score:
-                        best_score = score
-                        best_move = move
-                        best_piece_position = piece_name.position
-                    beta = min(beta, best_score)  # Cập nhật beta
+            _, _, value = self.search(board_copy, depth - 1, not is_maximizing, alpha, beta)
 
-                # Nếu có pruning, dừng vòng lặp sớm và tăng đếm số nhánh bị tỉa
-                if beta <= alpha:
-                    self.pruned_branches += 1  # Tăng số nhánh bị tỉa
-                    break
+            if is_maximizing:
+                if value > best_score:
+                    best_score = value
+                    best_move = move
+                    best_piece = piece.position
+                alpha = max(alpha, best_score)
+            else:
+                if value < best_score:
+                    best_score = value
+                    best_move = move
+                    best_piece = piece.position
+                beta = min(beta, best_score)
 
-        # Kết thúc đo thời gian và tính thời gian chạy
-        end_time = time.time()
-        self.time_taken = end_time - start_time  # Lưu thời gian chạy
+            if beta <= alpha:
+                self.pruned_branches += 1
+                break
 
-        return best_piece_position, best_move, best_score
+        self.time_taken += time.time() - start_time
+        return best_piece, best_move, best_score
 
     def sort_valid_moves(self, valid_moves, maximizing_player):
         """
