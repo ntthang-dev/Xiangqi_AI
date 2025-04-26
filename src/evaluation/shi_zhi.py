@@ -2,12 +2,12 @@
 from pieces.piece import Piece
 class ShiZhi:
     PIECE_VALUE = {
-        'jiang': 20000,  # Tướng phải được bảo vệ
-        'pao': 450,      # Pháo giá trị thay đổi theo thế trận
-        'ju':1000,
-        'ma': 400,       # Ngựa giá trị thay đổi theo thế trận
+        'jiang': 9999999,  # Tướng phải được bảo vệ
+        'pao': 400,      # Pháo giá trị thay đổi theo thế trận
+        'ju':1000,      # Xe
+        'ma': 450,       # Ngựa giá trị thay đổi theo thế trận
         'xiang': 250,    # Tượng
-        'shi': 300,      # Sĩ
+        'shi': 200,      # Sĩ
         'bing_0': 100,  # Binh chưa qua sông
         'bing_1': 200,  # Binh đã qua sông
     }

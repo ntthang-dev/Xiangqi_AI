@@ -172,6 +172,9 @@ class Board:
         # Clear selection and valid moves
         self.selected_piece = None
         self.valid_moves = []
+        # Trước dòng: self.current_player = ...
+        self.move_history.append((from_pos, to_pos, piece, captured_piece))
+
         return True
     
     def is_in_check(self, color):
@@ -317,6 +320,7 @@ class Board:
 
         # If a piece is already selected
         if self.selected_piece:
+            print("valid_moves: ", self.valid_moves)
             # Try to move the selected piece to the clicked position
             if board_pos in self.valid_moves:
                 return self.move_piece(self.selected_piece.position, board_pos)
@@ -384,6 +388,24 @@ class Board:
         return result
     def copy(self):
         return copy.deepcopy(self)
+    def is_repeating_state(self, color='red', repeat_limit=3):
+        if len(self.move_history) < repeat_limit * 2:
+            return False
+
+        # Lấy các nước đi của màu đang xét
+        filtered = [(f, t) for f, t, piece, _ in self.move_history if piece.color == color]
+        
+        if len(filtered) < repeat_limit * 2:
+            return False
+
+        recent = filtered[-repeat_limit*2:]
+        return all(recent[i] == recent[i+2] for i in range(0, repeat_limit*2 - 2, 2))
+    def get_total_moves(self):
+        """Trả về tổng số nước đi đã diễn ra trong game"""
+        return len(self.move_history)
+
+
+
 def is_surface(obj):
     if isinstance(obj, pygame.Surface):
         return True

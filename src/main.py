@@ -3,6 +3,8 @@ import sys
 import os
 from board.board import Board
 import engine
+from search.random_bot import random_bot_move
+
 # Initialize pygame
 pygame.init()
 
@@ -47,7 +49,8 @@ class Button:
         text_surface = self.font.render(self.text, True, self.text_color)
         text_rect = text_surface.get_rect(center=self.rect.center)
         surface.blit(text_surface, text_rect)
-    
+
+
     def check_hover(self, pos):
         self.is_hovered = self.rect.collidepoint(pos)
         return self.is_hovered    
@@ -65,6 +68,9 @@ class Game:
         self.ai_difficulty = 2
         self.clock = pygame.time.Clock()
         self.winner = None
+        self.bot_mode = None  # 'random_vs_alpha' hoặc None
+
+
 
         # Create UI elements
         self.create_ui_elements()
@@ -74,14 +80,15 @@ class Game:
         self.menu_buttons = [
             Button(SCREEN_WIDTH//2 - 100, 160, 200, 50, "Human vs Human", WHITE, GOLD),
             Button(SCREEN_WIDTH//2 - 100, 230, 200, 50, "Human with AI", WHITE, GOLD),
-            Button(SCREEN_WIDTH//2 - 100, 300, 200, 50, "Quit", WHITE, RED)
+            Button(SCREEN_WIDTH//2 - 140, 300, 280, 50, "Random vs Alpha-Beta", WHITE, GOLD),
+            Button(SCREEN_WIDTH//2 - 100, 370, 200, 50, "Quit", WHITE, RED)
         ]
         
         # Difficulty buttons
         self.difficulty_buttons = [
-            Button(SCREEN_WIDTH//2 - 180, 420, 100, 40, "Easy", WHITE, GOLD),
-            Button(SCREEN_WIDTH//2 - 50, 420, 100, 40, "Medium", WHITE, GOLD),  # Default selected
-            Button(SCREEN_WIDTH//2 + 80, 420, 100, 40, "Hard", WHITE, GOLD)
+            Button(SCREEN_WIDTH//2 - 180, 480, 100, 40, "Easy", WHITE, GOLD),
+            Button(SCREEN_WIDTH//2 - 50, 480, 100, 40, "Medium", WHITE, GOLD),  # Default selected
+            Button(SCREEN_WIDTH//2 + 80, 480, 100, 40, "Hard", WHITE, GOLD)
         ]
 
         # In-game buttons
@@ -108,7 +115,7 @@ class Game:
     def draw_menu(self):
         """Draw the main menu screen"""
         screen.fill(WHITE)
-        
+        self.bot_mode = None
         # Draw title
         font = pygame.font.SysFont('DejaVu Sans Mono', 44, bold=True)
         title = font.render("Zhongguo Xiangqi", True, RED)
@@ -122,7 +129,7 @@ class Game:
         # Draw difficulty selector
         font = pygame.font.SysFont('DejaVu Sans Mono', 22, bold=True)
         text = font.render("AI Difficulty (default is Medium):", True, BLACK)
-        text_rect = text.get_rect(center=(SCREEN_WIDTH//2, 390))
+        text_rect = text.get_rect(center=(SCREEN_WIDTH//2, 440))
         screen.blit(text, text_rect)
 
         for i, button in enumerate(self.difficulty_buttons):
@@ -149,6 +156,9 @@ class Game:
         screen.blit(text_surface, (290, 15))
 
         # TODO Draw thingking indicator if AI is calculating
+        if self.bot_mode == 'random_vs_alpha':
+            ai_info = font.render("Random Bot vs Alpha-Beta", True, BLUE)
+            screen.blit(ai_info, (SCREEN_WIDTH//2 - ai_info.get_width()//2, 65))
 
         # Check for checkmate/game over
         if self.board.is_checkmate('red'):
@@ -201,10 +211,15 @@ class Game:
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[1].is_clicked(pos, click): # Play with AI
-                self.player_color = 'ed'
+                self.player_color = 'red'
                 self.state = STATE_PLAYING
                 self.reset_game()
-            elif self.menu_buttons[2].is_clicked(pos, click): # Quit
+            elif self.menu_buttons[2].is_clicked(pos, click):  # Random vs Alpha-Beta
+                self.player_color = 'red'  # không có người chơi
+                self.bot_mode = 'random_vs_alpha'
+                self.state = STATE_PLAYING
+                self.reset_game()
+            elif self.menu_buttons[3].is_clicked(pos, click): # Quit
                 pygame.quit()
                 sys.exit()
             
@@ -260,6 +275,20 @@ class Game:
             elif self.board.is_checkmate('black'):
                 self.winner = 'Red'
                 self.state = STATE_GAME_OVER
+            
+            return 
+        if self.bot_mode == 'random_vs_alpha':
+            
+            if self.board.current_player == 'black':
+                # Red dùng random bot
+                print("random AI", self.board.current_player)
+                random_bot_move(self.board)
+            else:
+                # Black dùng alpha-beta bot
+                print("AI is thinking...")
+                engine.engine(self.board, 'red', type='alpha_beta', difficulty=self.ai_difficulty)
+            print("Game Over!", self.winner,self.board.get_total_moves())
+            return
         if self.player_color:
              # Delay to show the move
             # This is in AI Mode
