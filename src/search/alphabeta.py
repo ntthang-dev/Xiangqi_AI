@@ -23,11 +23,9 @@ class AlphaBeta:
         best_piece = None
 
         valid_moves = move_generation.get_valid_moves(board, board.current_player)
-        valid_moves_with_scores = move_generation.evaluate_generation(board, valid_moves)
-        sorted_moves = self.sort_valid_moves(valid_moves_with_scores, not is_maximizing)
-        flat_moves = move_generation.list1_2list(sorted_moves)
+        flat_moves = move_generation.list1_2list(valid_moves )
 
-        for piece, move, _ in flat_moves:
+        for piece, move in flat_moves:
             board_copy = board.copy()
             from_pos = piece.position
             board_copy.move_piece(from_pos, move)

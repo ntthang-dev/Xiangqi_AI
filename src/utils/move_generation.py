@@ -54,40 +54,15 @@ def get_valid_moves(board: Board, AI_color: str) -> list:
     # Nếu lọc xong mà không còn nước nào, quay lại dùng valid_move ban đầu
     return final_moves
 
-def evaluate_generation(board: Board, valid_moves: list) -> list:
-    """
-    Generate evaluation scores for each possible move,
-    using the same logic as evaluation_board().
-    """
-    result = []
-    evaluating_color = board.current_player  # Lấy màu hiện tại đang đi
-
-    for piece, moves in valid_moves:
-        move_scores = []
-        for move in moves:
-            board_copy = board.copy()
-            board_copy.move_piece(piece.position, move)
-            board_copy.current_player = evaluating_color  # Reset lại màu để đánh giá chuẩn
-
-            shizhi = checkShizhi(board_copy, evaluating_color)
-            shizhan = checkShizhan(board_copy, evaluating_color)
-            kongjian = checkKongjian(board_copy, evaluating_color)
-
-            total_score = shizhi + shizhan + kongjian
-            move_scores.append((move, total_score))
-
-        result.append((piece, move_scores))
-    return result
-
 def list1_2list(valid_move:list)->list:
 
     """
-    This func convert the list from (piece,[(move1,value),(move2,value),...]) to [(piece,move1,value1),(piece,move2,value2),...]
+    This func convert the list from (piece,[(move1,move2,,...),...]) to [(piece,move1),(piece,move2),...]
     """
     result = []
     for piece, moves in valid_move:
-        for move, value in moves:
-            result.append((piece, move, value))
+        for move in moves:
+            result.append((piece, move))
     return result
 
 def evaluation_board(board: Board, evaluating_color: str) -> int:

@@ -16,7 +16,7 @@ class Minimax:
             return None, None, score
 
         valid_moves = move_generation.get_valid_moves(board, board.current_player)
-        flat_moves = move_generation.list1_2list([(piece, [(m, 0) for m in moves]) for piece, moves in valid_moves])
+        flat_moves = move_generation.list1_2list(valid_moves )
 
         best_score = float('-inf') if maximizing_player else float('inf')
         best_move = None
