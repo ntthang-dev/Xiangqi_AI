@@ -338,14 +338,14 @@ class Game:
         pygame.quit()
         sys.exit()
     def run_experiment_random_vs_ai(self):
-            """Chạy thử nghiệm Random Bot vs AI Bot với 3 độ khó, 10 ván mỗi độ khó."""
-            results = {
-                1: {"win": 0, "loss": 0, "draw": 0},
-                2: {"win": 0, "loss": 0, "draw": 0},
-                3: {"win": 0, "loss": 0, "draw": 0},
-            }
+        """Chạy thử nghiệm Random Bot vs AI Bot với 3 độ khó, 10 ván mỗi độ khó."""
+        results = {
+            1: {"win": 0, "loss": 0, "draw": 0},
+            2: {"win": 0, "loss": 0, "draw": 0},
+            3: {"win": 0, "loss": 0, "draw": 0},
+        }
 
-            difficulty = 3
+        for difficulty in [1, 2, 3]:
             print(f"\n=== Đang chạy 10 trận với độ khó {difficulty} (Easy/Medium/Hard) ===")
             for game_idx in range(10):
                 start_time = time.time()
@@ -382,10 +382,10 @@ class Game:
                 print(f"  - Thời gian trận {game_idx + 1}: {time_taken:.2f} giây, tổng số nước đi: {total_moves}.")
                 print(f"  - Trận {game_idx + 1}/10: AI thắng {results[difficulty]['win']}, Random thắng {results[difficulty]['loss']}, Hòa {results[difficulty]['draw']}")
 
-            # In tổng kết
-            print("\n=== Tổng kết ===")
-            for difficulty in [1, 2, 3]:
-                print(f"Độ khó {difficulty}: AI thắng {results[difficulty]['win']} trận, Random thắng {results[difficulty]['loss']} trận, Hòa {results[difficulty]['draw']} trận.")
+        # In tổng kết
+        print("\n=== Tổng kết ===")
+        for difficulty in [1, 2, 3]:
+            print(f"Độ khó {difficulty}: AI thắng {results[difficulty]['win']} trận, Random thắng {results[difficulty]['loss']} trận, Hòa {results[difficulty]['draw']} trận.")
 
 
            

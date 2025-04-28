@@ -19,8 +19,8 @@ def engine(board: Board,Ai_color:str,type = 'minimax', difficulty = 2):
         m = minimax.Minimax()
         maximizing = (board.current_player == Ai_color)
         best_move = m.search(board, depth=difficulty, is_maximizing=maximizing)
-        print(f"Time taken: {m.time_taken:.2f} seconds")
-        print(f"Total_nodes: {m.total_nodes} nodes searched")
+        #print(f"Time taken: {m.time_taken:.2f} seconds")
+        #print(f"Total_nodes: {m.total_nodes} nodes searched")
     elif type == 'iterative_deepening':
         # Iterative deepening search algorithm
         best_move = iterative_deepening.iterative_deepening_search(board, max_depth=difficulty, time_limit=50.0)
