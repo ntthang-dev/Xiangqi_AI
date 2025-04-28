@@ -1,8 +1,12 @@
+import time
 from utils import move_generation
 from board.board import Board
 
 class Minimax:
-    def search(self, board: Board, depth: int, maximizing_player: bool, ai_color: str):
+    def __init__(self):
+        self.time_taken = 0
+        self.total_nodes = 0
+    def search(self, board: Board, depth: int, is_maximizing: bool):
         """
         Hàm minimax tìm kiếm nước đi tốt nhất không cắt tỉa.
         :param board: trạng thái bàn cờ hiện tại
@@ -10,6 +14,9 @@ class Minimax:
         :param maximizing_player: True nếu AI đang đi, False nếu đối thủ đi
         :param ai_color: màu quân của AI ('red' hoặc 'black')
         """
+        start_time = time.time()
+        self.total_nodes += 1
+        ai_color = board.current_player if is_maximizing else ('black' if board.current_player == 'red' else 'red')
         # Nếu đạt depth 0 hoặc hết game
         if depth == 0 or board.is_game_over():
             score = move_generation.evaluation_board(board, ai_color)
@@ -18,27 +25,27 @@ class Minimax:
         valid_moves = move_generation.get_valid_moves(board, board.current_player)
         flat_moves = move_generation.list1_2list(valid_moves )
 
-        best_score = float('-inf') if maximizing_player else float('inf')
+        best_score = float('-inf') if is_maximizing else float('inf')
         best_move = None
-        best_piece_position = None
+        best_piece = None
 
-        for piece, move, _ in flat_moves:
-            board_copy = board.copy()
+        for piece, move in flat_moves:
             from_pos = piece.position
-            board_copy.move_piece(from_pos, move)
-            # KHÔNG đổi current_player bằng tay! `move_piece` đã tự đổi rồi
+            captured = board.move_piece(from_pos, move)
 
-            _, _, score = self.search(board_copy, depth - 1, not maximizing_player, ai_color)
+            _, _, value = self.search(board, depth - 1, not is_maximizing)
 
-            if maximizing_player:
-                if score > best_score:
-                    best_score = score
+            board.undo_move(from_pos, move, captured)
+
+            if is_maximizing:
+                if value > best_score:
+                    best_score = value
+                    best_piece = from_pos
                     best_move = move
-                    best_piece_position = from_pos
             else:
-                if score < best_score:
-                    best_score = score
+                if value < best_score:
+                    best_score = value
+                    best_piece = from_pos
                     best_move = move
-                    best_piece_position = from_pos
-
-        return best_piece_position, best_move, best_score
+        self.time_taken += time.time() - start_time
+        return best_piece, best_move, best_score

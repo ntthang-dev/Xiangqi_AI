@@ -1,79 +1,63 @@
-import sys
-import os
 from board.board import Board
-import copy
 from evaluation.shi_zhi import ShiZhi
+
 def get_chess_of_color(color: str) -> list:
-    """
-    Get the chess pieces of a specific color.
-    
-    :param color: The color of the chess pieces ('red' or 'black').
-    :return: A list of chess pieces of the specified color.
-    """
     if color == 'red':
-        return ['R','M','X','S','J','P','B']
+        return ['R', 'M', 'X', 'S', 'J', 'P', 'B']
     elif color == 'black':
-        return ['r','m','x','s','j','p','b']
+        return ['r', 'm', 'x', 's', 'j', 'p', 'b']
     else:
         raise ValueError("Invalid color. Use 'red' or 'black'.")
+
 def get_valid_moves(board: Board, AI_color: str) -> list:
     board_map = board.board
-    valid_move = []
+    valid_moves = []
     AI_chess = get_chess_of_color(AI_color)
-    
-    # Bước 1: Lấy tất cả nước đi hợp lệ ban đầu
-    for i in board_map:
-        for j in i:
-            if j is None:
+
+    for row in range(10):
+        for col in range(9):
+            piece = board_map[row][col]
+            if piece is None or piece.symbol not in AI_chess:
                 continue
-            if j.symbol in AI_chess:
-                raw_moves = j.get_valid_moves(board)
-                filtered_moves = []
-                for move in raw_moves:
-                    if is_move_legal(board, j, move):
-                        filtered_moves.append(move)
-                if filtered_moves:
-                    valid_move.append((j, filtered_moves))
-    
-    # Bước 2: Kiểm tra lặp cho từng quân
-    final_moves = []
-    for piece, moves in valid_move:
-        is_piece_repeating = False
-        for move in moves:
-            temp_board = board.copy()
-            temp_board.move_piece(piece.position, move)
-            temp_board.current_player = AI_color  
-            if temp_board.is_repeating_state(color=AI_color, repeat_limit=3):
-                is_piece_repeating = True
-                print("Repeating Detected!!!")
-                break
 
-        if not is_piece_repeating:
-            final_moves.append((piece, moves))  # Giữ quân này lại
+            raw_moves = piece.get_valid_moves(board)
+            filtered_moves = []
 
-    # Nếu lọc xong mà không còn nước nào, quay lại dùng valid_move ban đầu
-    return final_moves
+            for move in raw_moves:
+                from_pos = piece.position
+                captured = board.move_piece(from_pos, move)
+                
+                if not board.is_in_check(AI_color):
+                    filtered_moves.append(move)
+                
+                board.undo_move(from_pos, move, captured)
 
-def list1_2list(valid_move:list)->list:
+            if filtered_moves:
+                valid_moves.append((piece, filtered_moves))
 
+    return valid_moves
+
+def list1_2list(valid_moves: list) -> list:
     """
-    This func convert the list from (piece,[(move1,move2,,...),...]) to [(piece,move1),(piece,move2),...]
+    Convert [(piece, [move1, move2, ...]), ...] to [(piece, move1), (piece, move2), ...]
     """
     result = []
-    for piece, moves in valid_move:
+    for piece, moves in valid_moves:
         for move in moves:
             result.append((piece, move))
     return result
 
 def evaluation_board(board: Board, evaluating_color: str) -> int:
     """
-    Đánh giá trạng thái bàn cờ theo hướng của evaluating_color (AI).
+    Evaluate board for given color.
     """
     opponent = 'black' if evaluating_color == 'red' else 'red'
     if board.is_checkmate(evaluating_color):
         return -99999999
     if board.is_checkmate(opponent):
         return 99999999
+    if board.is_repeating_state(evaluating_color):
+        return -99999
 
     return (
         checkShizhi(board, evaluating_color)
@@ -124,21 +108,3 @@ def checkKongjian(board: Board, evaluating_color: str) -> int:
                 total_valid_moves_opp += len(moves)
 
     return (total_valid_moves_AI - total_valid_moves_opp) * 100
-def is_move_legal(board: Board, piece, move) -> bool:
-    """Check if a move is legal (does not leave own king in check)"""
-    original_pos = piece.position
-    captured_piece = board.get_piece(move)
-    
-    # Make the move
-    board.board[original_pos[0]][original_pos[1]] = None
-    board.board[move[0]][move[1]] = piece
-    piece.position = move
-
-    # Check if in check
-    in_check = board.is_in_check(piece.color)
-
-    # Undo move
-    board.board[original_pos[0]][original_pos[1]] = piece
-    piece.position = original_pos
-    board.board[move[0]][move[1]] = captured_piece
-    return not in_check

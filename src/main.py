@@ -4,7 +4,7 @@ import os
 from board.board import Board
 import engine
 from search.random_bot import random_bot_move
-
+import time
 # Initialize pygame
 pygame.init()
 
@@ -69,7 +69,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.winner = None
         self.bot_mode = None  # 'random_vs_alpha' hoặc None
-
+        self.default_difficulty = 2
 
 
         # Create UI elements
@@ -186,8 +186,8 @@ class Game:
         
         # Draw game over message
         font = pygame.font.SysFont('DejaVu Sans Mono', 44, bold=True)
-        message = f"{'Red' if self.winner == 'red' else 'Black'} Wins!"
-        text_color = RED if self.winner == 'red' else BLACK
+        message = f"{'Red' if self.winner == 'Red' else 'Black'} Wins!"
+        text_color = RED if self.winner == 'Red' else BLACK
         text_surface = font.render(message, True, text_color)
         text_rect = text_surface.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 100))
         screen.blit(text_surface, text_rect)
@@ -211,7 +211,7 @@ class Game:
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[1].is_clicked(pos, click): # Play with AI
-                self.player_color = 'red'
+                self.player_color = 'black'
                 self.state = STATE_PLAYING
                 self.reset_game()
             elif self.menu_buttons[2].is_clicked(pos, click):  # Random vs Alpha-Beta
@@ -219,6 +219,7 @@ class Game:
                 self.bot_mode = 'random_vs_alpha'
                 self.state = STATE_PLAYING
                 self.reset_game()
+                self.run_experiment_random_vs_ai()
             elif self.menu_buttons[3].is_clicked(pos, click): # Quit
                 pygame.quit()
                 sys.exit()
@@ -227,6 +228,7 @@ class Game:
             for i, button in enumerate(self.difficulty_buttons):
                 if button.is_clicked(pos, click):
                     self.ai_difficulty = i + 1
+                    self.default_difficulty = i + 1
                     print("AI Difficulty set to:", self.ai_difficulty)
                     # TODO self.engine = Engine()
                 
@@ -280,21 +282,21 @@ class Game:
         if self.bot_mode == 'random_vs_alpha':
             
             if self.board.current_player == 'black':
-                # Red dùng random bot
-                print("random AI", self.board.current_player)
                 random_bot_move(self.board)
             else:
-                # Black dùng alpha-beta bot
-                print("AI is thinking...")
                 engine.engine(self.board, 'red', type='alpha_beta', difficulty=self.ai_difficulty)
-            print("Game Over!", self.winner,self.board.get_total_moves())
+                if self.board.is_repeating_state('red'):
+                    self.ai_difficulty += 1
+                    print(f"⚡ Phát hiện lặp, tăng depth = {self.ai_difficulty} để tính lại...")
+                else:
+                    self.ai_difficulty = self.default_difficulty
+            
             return
         if self.player_color:
              # Delay to show the move
             # This is in AI Mode
             # AI's turn to think
             if self.board.current_player != self.player_color:
-                print("AI is thinking...")
 
                 engine.engine(self.board, self.board.current_player, type='alpha_beta', difficulty=self.ai_difficulty)
                 
@@ -335,7 +337,58 @@ class Game:
         
         pygame.quit()
         sys.exit()
-            
+    def run_experiment_random_vs_ai(self):
+            """Chạy thử nghiệm Random Bot vs AI Bot với 3 độ khó, 10 ván mỗi độ khó."""
+            results = {
+                1: {"win": 0, "loss": 0, "draw": 0},
+                2: {"win": 0, "loss": 0, "draw": 0},
+                3: {"win": 0, "loss": 0, "draw": 0},
+            }
+
+            difficulty = 3
+            print(f"\n=== Đang chạy 10 trận với độ khó {difficulty} (Easy/Medium/Hard) ===")
+            for game_idx in range(10):
+                start_time = time.time()
+                total_moves = 0
+                self.board = Board()
+                self.ai_difficulty = difficulty
+                self.default_difficulty = difficulty
+                self.bot_mode = 'random_vs_alpha'  # Random bot vs AlphaBeta AI
+                default_repeat=3
+                while not self.board.is_game_over():
+                    total_moves += 1
+                    if self.board.current_player == 'black':
+                        random_bot_move(self.board)
+                    else:
+                        engine.engine(self.board, 'red', type='alpha_beta', difficulty=self.ai_difficulty)
+                        
+                        if self.board.is_repeating_state('red', default_repeat):
+                            self.ai_difficulty += 1
+                            default_repeat +=3
+                            print(f"⚡ Phát hiện lặp, tăng depth = {self.ai_difficulty} để tính lại...")
+                        else:
+                            default_repeat = 3
+                            self.ai_difficulty = self.default_difficulty
+                time_taken = time.time() - start_time
+                # Xử lý kết quả
+                if self.board.is_checkmate('red'):
+                    results[difficulty]["loss"] += 1  # Random thắng
+                elif self.board.is_checkmate('black'):
+                    results[difficulty]["win"] += 1   # AI thắng
+                else:
+                    results[difficulty]["draw"] += 1  # Hòa
+
+                print(f"  - Trận {game_idx + 1}/10 hoàn thành.")
+                print(f"  - Thời gian trận {game_idx + 1}: {time_taken:.2f} giây, tổng số nước đi: {total_moves}.")
+                print(f"  - Trận {game_idx + 1}/10: AI thắng {results[difficulty]['win']}, Random thắng {results[difficulty]['loss']}, Hòa {results[difficulty]['draw']}")
+
+            # In tổng kết
+            print("\n=== Tổng kết ===")
+            for difficulty in [1, 2, 3]:
+                print(f"Độ khó {difficulty}: AI thắng {results[difficulty]['win']} trận, Random thắng {results[difficulty]['loss']} trận, Hòa {results[difficulty]['draw']} trận.")
+
+
+           
 # Create and run the game
 if __name__ == "__main__":
     game = Game()

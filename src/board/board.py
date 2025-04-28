@@ -147,35 +147,54 @@ class Board:
     
     def get_piece(self, position):
         """Get piece at the given position"""
+        if position is None:
+            return None
         row, col = position
         if 0 <= row < 10 and 0 <= col < 9:
             return self.board[row][col]
         return None
     
     def move_piece(self, from_pos, to_pos):
-        """Move a piece from one position to another"""
+        """Move a piece and return captured piece."""
         piece = self.get_piece(from_pos)
-        
-        # Check if the move is valid or piece is None
-        if (to_pos not in piece.get_valid_moves(self)) or (not piece):
-            return False
+        if piece is None or (to_pos not in piece.get_valid_moves(self)):
+            return None
 
-        # Execute the move
         captured_piece = self.get_piece(to_pos)
+
         self.board[from_pos[0]][from_pos[1]] = None
         self.board[to_pos[0]][to_pos[1]] = piece
         piece.position = to_pos
-        
-        # Switch player 
-        self.current_player = 'black' if self.current_player == 'red' else 'red'
 
-        # Clear selection and valid moves
-        self.selected_piece = None
-        self.valid_moves = []
-        # Trước dòng: self.current_player = ...
+        self.current_player = 'black' if self.current_player == 'red' else 'red'
+        
         self.move_history.append((from_pos, to_pos, piece, captured_piece))
 
+        self.selected_piece = None
+        self.valid_moves = []
+
+        return captured_piece
+
+    def undo_move(self, from_pos, to_pos, captured_piece):
+        """Undo a move."""
+        piece = self.get_piece(to_pos)
+        if piece is None:
+            return False
+
+        self.board[from_pos[0]][from_pos[1]] = piece
+        self.board[to_pos[0]][to_pos[1]] = captured_piece
+        piece.position = from_pos
+
+        self.current_player = 'black' if self.current_player == 'red' else 'red'
+        
+        if self.move_history:
+            self.move_history.pop()
+
+        self.selected_piece = None
+        self.valid_moves = []
+
         return True
+
     
     def is_in_check(self, color):
         """Check if the player of given color is in check (bị chiếu tướng)"""
@@ -199,9 +218,12 @@ class Board:
 
     def is_checkmate(self, color):
         """Check if the player of given color is in checkmate."""
+        valid_moves = self.get_legal_moves(color)
+        
+        if not valid_moves:
+            return True
         if not self.is_in_check(color):
             return False
-        
         # Try all possible moves to see if any can get out of check
         for row in range(10):
             for col in range(9):
@@ -226,8 +248,10 @@ class Board:
 
                         if not still_in_check:
                             return False
-        return True
-    
+
+        #kiểm tra tướng số đường đi get_valid_move có khớp với is_move_legal không
+        return False
+
     def is_game_over(self):
         """Check if the game is over (checkmate)"""
         return self.is_checkmate('red') or self.is_checkmate('black')
@@ -320,7 +344,6 @@ class Board:
 
         # If a piece is already selected
         if self.selected_piece:
-            print("valid_moves: ", self.valid_moves)
             # Try to move the selected piece to the clicked position
             if board_pos in self.valid_moves:
                 return self.move_piece(self.selected_piece.position, board_pos)
@@ -403,6 +426,33 @@ class Board:
     def get_total_moves(self):
         """Trả về tổng số nước đi đã diễn ra trong game"""
         return len(self.move_history)
+    def is_threefold_repetition(self, color: str) -> bool:
+        """
+        Kiểm tra tam chiếu (3 lần chiếu liên tiếp mà không thay đổi trạng thái).
+        - color: màu của người kiểm tra ('red' hoặc 'black')
+        """
+        if len(self.move_history) < 6:
+            return False  # Chưa đủ nước đi để lặp
+
+        # Lấy 6 nước gần nhất (3 lần đi mỗi bên)
+        recent_moves = self.move_history[-6:]
+
+        # Kiểm tra xem có phải người này cứ chiếu liên tục không
+        for i in range(0, 6, 2):
+            from_pos, to_pos, piece, captured = recent_moves[i]
+            if piece.color != color:
+                return False  # Không phải người cần xét đi, bỏ qua
+
+            # Kiểm tra nước đi này có chiếu không
+            temp_board = self.copy()
+            temp_board.board[from_pos[0]][from_pos[1]] = None
+            temp_board.board[to_pos[0]][to_pos[1]] = piece
+            piece.position = to_pos
+            if not temp_board.is_in_check('black' if color == 'red' else 'red'):
+                return False  # Nếu nước này không chiếu tướng thì không phải tam chiếu
+
+        return True  # Nếu 3 lần chiếu liên tiếp thì đúng là tam chiếu
+
 
 
 
