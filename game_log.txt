@@ -74,10 +74,27 @@
   - Trận 3/10: AI thắng 3, Random thắng 0, Hòa 0
   - Trận 4/10 hoàn thành.
   - Thời gian trận 4: 384.94 giây, tổng số nước đi: 23.
-  - Trận 4/10: AI thắng 4, Random thắng 0, Hòa 0
+  - Trận 4/10: AI thắng 4, Random thắng 0, Hòa 0    
   - Trận 5/10 hoàn thành.
   - Thời gian trận 5: 2553.91 giây, tổng số nước đi: 83.
   - Trận 5/10: AI thắng 5, Random thắng 0, Hòa 0
   - Trận 6/10 hoàn thành.
   - Thời gian trận 6: 1603.04 giây, tổng số nước đi: 51.
-  - Trận 6/10: AI thắng 1, Random thắng 0, Hòa 0
+  - Trận 6/10: AI thắng 6, Random thắng 0, Hòa 0
+  - Trận 7/10 hoàn thành.
+  - Thời gian trận 7: 1948.58 giây, tổng số nước đi: 37.
+  - Trận 7/10: AI thắng 7, Random thắng 0, Hòa 0
+  - Trận 8/10 hoàn thành. 
+  - Thời gian trận 8: 1230.51 giây, tổng số nước đi: 67.
+  - Trận 8/10: AI thắng 8, Random thắng 0, Hòa 0
+  - Trận 9/10 hoàn thành.
+  - Thời gian trận 9: 2517.48 giây, tổng số nước đi: 53.
+  - Trận 9/10: AI thắng 9, Random thắng 0, Hòa 0
+  - Trận 10/10 hoàn thành.
+  - Thời gian trận 10: 1779.30 giây, tổng số nước đi: 55.
+  - Trận 10/10: AI thắng 10, Random thắng 0, Hòa 0
+
+=== Tổng kết ===
+Độ khó 1: AI thắng 10 trận, Random thắng 0 trận, hòa 0 trận.
+Độ khó 2: AI thắng 10 trận, Random thắng 0 trận, hòa 0 trận.
+Độ khó 3: AI thắng 10 trận, Random thắng 0 trận, hòa 0 trận.
